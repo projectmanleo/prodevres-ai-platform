@@ -1,0 +1,18 @@
+PRODEVRES AI — FREE DEPLOYMENT MODE
+
+Hosting target: GitHub Pages (GitHub Free).
+Custom domain: prodevres.com
+HTTPS: provided by GitHub Pages/Let's Encrypt after DNS is configured.
+
+Contact form:
+The live contact and service-request forms use FormSubmit's free AJAX endpoint and email submissions to prodevreszit@solution4u.com. The first submission may require email confirmation.
+
+Payment:
+Online PayUnit checkout is intentionally not enabled in this free deployment because it requires a public production payment endpoint. The pricing section now collects service requests instead of pretending that payment is connected. Payment can be added later without exposing credentials in the React app.
+
+Deployment:
+1. Create a public GitHub repository.
+2. Upload the contents of this folder.
+3. Use Settings > Pages and select GitHub Actions if required.
+4. The included workflow builds and deploys the Vite site.
+5. Configure prodevres.com as the custom domain.

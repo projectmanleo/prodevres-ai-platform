@@ -1,0 +1,32 @@
+PRODEVRES PAYUNIT INTEGRATION
+
+The Pricing form is now wired to call an n8n checkout webhook and redirect to the
+PayUnit checkout URL returned by n8n.
+
+BEFORE BUILDING:
+1. In src/components/Pricing.jsx, replace:
+   https://YOUR-PUBLIC-N8N-URL/webhook/prodevres-payunit-checkout
+   with the real PUBLIC production webhook URL of the n8n workflow that creates
+   the PayUnit checkout.
+
+2. The n8n webhook should accept POST JSON containing:
+   name, email, company, phone, project, service, serviceId, amount, currency,
+   source, submittedAt
+
+3. The n8n PayUnit HTTP Request should create the PayUnit checkout and return
+   the checkout URL to the browser. The response can use any of these fields:
+   transaction_url, redirect, payment_url, checkout_url, or the same fields
+   inside data.
+
+4. DO NOT put PayUnit API credentials in React.
+
+5. For the website use /webhook/..., NOT /webhook-test/....
+
+6. The n8n workflow must be published/active before the production webhook is
+   used.
+
+7. Cloudflare Quick Tunnel URLs are temporary. For production, replace the
+   temporary trycloudflare URL with a permanent public n8n endpoint.
+
+The payment notification workflow remains separate:
+PayUnit -> public notification URL -> n8n Webhook -> verify payment -> Apps Script/Google Sheet -> Gmail.
