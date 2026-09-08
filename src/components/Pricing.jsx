@@ -284,12 +284,12 @@ export default function Pricing({ t }) {
               className="btn primary submit-btn"
               disabled={sending}
             >
-              {sending ? "Opening secure checkout..." : "Pay securely →"}
+              {sending ? "Sending request..." : "Request this service →"}
             </button>
 
             <p className="payment-note">
-              You will be redirected to PayUnit's secure checkout to complete
-              payment. Your payment details are never handled by this website.
+              This free-deployment version sends your service request securely by email.
+              We will confirm the final scope, price and payment options with you.
             </p>
           </form>
         </div>

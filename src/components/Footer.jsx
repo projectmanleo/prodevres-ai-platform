@@ -10,7 +10,7 @@ export default function Footer() {
 
           <a href="#top" className="footer-logo">
             <img
-              src="/logo.png"
+              src={`${import.meta.env.BASE_URL}logo.png`}
               alt="ProDevRes AI"
             />
           </a>
