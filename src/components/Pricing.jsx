@@ -1,72 +1,83 @@
+
 import { useMemo, useState } from "react";
 
-/* Free deployment mode: service requests are emailed securely through FormSubmit. Online payment can be connected later when a production payment endpoint is available. */
-
-const SERVICE_REQUEST_ENDPOINT =
-  "https://formsubmit.co/ajax/prodevreszit@solution4u.com";
+const PAYMENT_ENDPOINT =
+  "https://8afcca66.prodevres-ai.pages.dev/api/create-payment";
 
 const services = [
   {
     id: "chatbots",
     name: "AI Chatbots",
-    price: 250,
+    price: 350,
     description:
-      "Intelligent assistants for customers, leads and internal support."
+      "Intelligent assistants for customers, leads and internal support.",
+    scope: [
+      "One basic FAQ chatbot for one channel",
+      "Setup using one defined knowledge base",
+      "Initial testing and handover"
+    ]
   },
   {
     id: "workflow",
     name: "Workflow Automation",
-    price: 350,
+    price: 400,
     description:
-      "Connect your tools and automate repetitive business processes."
+      "Connect your tools and automate repetitive business processes.",
+    scope: [
+      "One clearly defined business workflow",
+      "Up to two standard integrations",
+      "Testing and basic handover documentation"
+    ]
   },
   {
     id: "virtual-assistant",
     name: "Virtual Assistant Automation",
-    price: 200,
+    price: 250,
     description:
-      "AI-assisted research, administration and everyday operations."
+      "AI-assisted research, administration and everyday operations.",
+    scope: [
+      "Automation of one routine administrative task",
+      "Configuration for an agreed process",
+      "Basic testing and usage guidance"
+    ]
   },
   {
     id: "email",
     name: "Email Automation",
     price: 150,
     description:
-      "Faster, consistent customer communication and follow-up."
+      "Faster, consistent customer communication and follow-up.",
+    scope: [
+      "One basic email sequence or notification workflow",
+      "Configuration of the agreed trigger and message",
+      "Testing before handover"
+    ]
   },
   {
     id: "research",
     name: "AI Research",
-    price: 100,
+    price: 150,
     description:
-      "Turn information into clear, useful business insight."
+      "Turn information into clear, useful business insight.",
+    scope: [
+      "One focused research question or topic",
+      "A written brief with source references",
+      "Key findings and practical recommendations"
+    ]
   },
   {
     id: "governance",
     name: "AI-Aware Governance",
     price: 300,
     description:
-      "Responsible processes for data, security and AI adoption."
+      "Responsible processes for data, security and AI adoption.",
+    scope: [
+      "A basic review of an agreed AI use case",
+      "Identification of key risks and concerns",
+      "Practical governance recommendations"
+    ]
   }
 ];
-
-const CURRENCY = "EUR";
-
-function getCheckoutUrl(payload) {
-  return (
-    payload?.transaction_url ||
-    payload?.redirect ||
-    payload?.payment_url ||
-    payload?.checkout_url ||
-    payload?.data?.transaction_url ||
-    payload?.data?.redirect ||
-    payload?.data?.payment_url ||
-    payload?.data?.checkout_url ||
-    payload?.data?.data?.transaction_url ||
-    payload?.data?.data?.redirect ||
-    ""
-  );
-}
 
 export default function Pricing({ t }) {
   const [selectedId, setSelectedId] = useState(services[0].id);
@@ -82,38 +93,29 @@ export default function Pricing({ t }) {
   async function handlePayment(event) {
     event.preventDefault();
     setError("");
-
     setSending(true);
 
     const form = event.currentTarget;
     const data = new FormData(form);
+    const phone = String(data.get("phone") || "").trim();
 
-    const client = {
-      name: String(data.get("name") || "").trim(),
-      email: String(data.get("email") || "").trim(),
-      company: String(data.get("company") || "").trim(),
-      phone: String(data.get("phone") || "").trim(),
-      project: String(data.get("project") || "").trim(),
-      service: selected.name,
-      serviceId: selected.id,
-      amount: selected.price,
-      currency: CURRENCY,
-      source: "ProDevRes AI website - Pricing",
-      submittedAt: new Date().toISOString()
-    };
+    if (!phone) {
+      setError("Please enter your phone number for secure payment.");
+      setSending(false);
+      return;
+    }
 
     try {
-      const response = await fetch(SERVICE_REQUEST_ENDPOINT, {
+      const response = await fetch(PAYMENT_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json"
         },
         body: JSON.stringify({
-          ...client,
-          _subject: `ProDevRes AI service request: ${client.service}`,
-          _template: "table",
-          _replyto: client.email
+          serviceId: selected.id,
+          phone,
+          language: "en"
         })
       });
 
@@ -123,31 +125,24 @@ export default function Pricing({ t }) {
       try {
         payload = rawText ? JSON.parse(rawText) : {};
       } catch {
-        payload = { raw: rawText };
+        payload = {};
       }
 
-      if (!response.ok) {
+      if (!response.ok || !payload?.success || !payload?.url) {
         throw new Error(
-          payload?.error ||
-            payload?.message ||
-            "The payment checkout could not be created."
+          payload?.message || "Unable to start secure payment."
         );
       }
 
-      if (payload?.success === false) {
-        throw new Error(payload?.message || "The service request could not be sent.");
-      }
-
-      setError(
-        "Request received. We will contact you to confirm the scope and payment options."
-      );
-      setSending(false);
+      window.location.href = payload.url;
     } catch (err) {
       console.error("ProDevRes payment error:", err);
+
       setError(
         err?.message ||
           "We couldn't start secure payment. Please try again."
       );
+
       setSending(false);
     }
   }
@@ -160,12 +155,12 @@ export default function Pricing({ t }) {
         </span>
 
         <h2>
-          {t.pricingTitle || "Choose a service and request a quote."}
+          {t.pricingTitle || "Choose a service and pay securely."}
         </h2>
 
         <p>
           {t.pricingLead ||
-            "Select a service and tell us what you need. We will confirm the scope, final price and payment options with you."}
+            "Choose a clearly defined starter package. Larger projects are quoted separately."}
         </p>
       </div>
 
@@ -184,7 +179,7 @@ export default function Pricing({ t }) {
             >
               {services.map((service) => (
                 <option key={service.id} value={service.id}>
-                  {service.name} — €{service.price}
+                  {service.name} — from €{service.price}
                 </option>
               ))}
             </select>
@@ -200,16 +195,26 @@ export default function Pricing({ t }) {
 
             <p>{selected.description}</p>
 
+            <h4>What's included</h4>
+
+            <ul className="service-scope">
+              {selected.scope.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+
             <small>
-              Starting price. Final pricing can be adjusted after reviewing
-              your requirements.
+              Starting price for the scope listed above. Additional
+              integrations, features, usage charges and ongoing support
+              may cost extra. Final scope and pricing will be agreed
+              before work begins.
             </small>
           </div>
         </div>
 
         <div className="payment-form-card">
           <form onSubmit={handlePayment}>
-            <h3>Service request</h3>
+            <h3>Secure payment</h3>
 
             <div className="form-row">
               <label>
@@ -252,6 +257,7 @@ export default function Pricing({ t }) {
                   name="phone"
                   type="tel"
                   placeholder="+237..."
+                  required
                   disabled={sending}
                 />
               </label>
@@ -284,12 +290,14 @@ export default function Pricing({ t }) {
               className="btn primary submit-btn"
               disabled={sending}
             >
-              {sending ? "Sending request..." : "Request this service →"}
+              {sending
+                ? "Connecting to secure payment..."
+                : "Continue to payment →"}
             </button>
 
             <p className="payment-note">
-              This free-deployment version sends your service request securely by email.
-              We will confirm the final scope, price and payment options with you.
+              You will be redirected to the configured secure payment
+              provider to complete your payment.
             </p>
           </form>
         </div>
